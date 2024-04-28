@@ -113,6 +113,7 @@
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\accumulator.cpp" />
     <ClCompile Include="src\attacks.cpp" />
     <ClCompile Include="src\bitboard.cpp" />
     <ClCompile Include="src\data.cpp" />

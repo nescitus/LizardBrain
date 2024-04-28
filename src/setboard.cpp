@@ -97,4 +97,5 @@ void SetPosition(Position *p, char *epd) {
       p->ep_sq = NO_SQ;
   }
   p->hash_key = InitHashKey(p);
+  Accumulator.SetFromScratch(p);
 }

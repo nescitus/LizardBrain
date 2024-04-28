@@ -1,5 +1,5 @@
 // REGEX to count all the lines under MSVC 13: ^(?([^\r\n])\s)*[^\s+?/]+[^\n]*$
-// 2632 lines
+// 2625 lines
 
 enum eColor{White, Black, NO_CL};
 enum ePieceType{Pawn, Knight, Bishop, Rook, Queen, King, NO_TP};
@@ -182,7 +182,6 @@ int BadCapture(Position *p, int move);
 void Bench(int depth);
 void BuildPv(int *dst, int *src, int move);
 void CheckForTimeout(void);
-void ClearEvalHash(void);
 void ClearHist(void);
 void ClearTrans(void);
 int CreateMove(int from, int to);
@@ -270,6 +269,17 @@ extern int tt_size;
 extern int tt_mask;
 extern int tt_date;
 extern double lmrSize[2][MAX_PLY][MAX_MOVES];
+
+class cAccumulator {
+public:
+	double hidden[16];
+	void SetFromScratch(Position* p);
+	void Clear();
+	void Add(int cl, int pc, int sq);
+	void Del(int cl, int pc, int sq);
+};
+
+extern cAccumulator Accumulator;
 
 class cNetwork {
 private:

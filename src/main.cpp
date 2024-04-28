@@ -3,6 +3,7 @@
 
 sTimer Timer; // class for setting and observing time limits
 cNetwork Network;
+cAccumulator Accumulator;
 
 int main() {
   Init();
