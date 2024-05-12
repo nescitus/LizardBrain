@@ -17,12 +17,12 @@ int Quiesce(Position* p, int ply, int alpha, int beta, int* pv) {
 #endif
     *pv = 0;
     if (IsDraw(p)) return 0;
-    if (ply >= MAX_PLY - 1) return Evaluate(p, 1);
+    if (ply >= MAX_PLY - 1) return Evaluate(p);
 
     // Get a stand-pat score and adjust bounds
     // (exiting if eval exceeds beta)
 
-    best = Evaluate(p, 1);
+    best = Evaluate(p);
     if (best >= beta) return best;
     if (best > alpha) alpha = best;
 

@@ -1,13 +1,13 @@
-//  Rodent, a UCI chess playing engine derived from Sungorus 1.4
+//  LizardBrain, a UCI chess playing engine derived from Sungorus 1.4
 //  Copyright (C) 2009-2011 Pablo Vazquez (Sungorus author)
-//  Copyright (C) 2011-2015 Pawel Koziol
+//  Copyright (C) 2024 Pawel Koziol
 //
-//  Rodent is free software: you can redistribute it and/or modify
+//  LizardBrain is free software: you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License as published
 //  by the Free Software Foundation, either version 3 of the License,
 //  or (at your option) any later version.
 //
-//  Rodent is distributed in the hope that it will be useful,
+//  LizardBrain is distributed in the hope that it will be useful,
 //  but WITHOUT ANY WARRANTY; without even the implied warranty
 //  of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 //  See the GNU General Public License for more details.
@@ -74,7 +74,6 @@ void Position::DoMove(int move, UNDO* u) {
         hash_key ^= zob_piece[Pc(op, ttp)][tsq];
         cl_bb[op] ^= SqBb(tsq);
         tp_bb[ttp] ^= SqBb(tsq);
-        phase -= phase_value[ttp];
         Accumulator.Del(op, ttp, tsq);
         cnt[op][ttp]--;
     }
@@ -110,7 +109,6 @@ void Position::DoMove(int move, UNDO* u) {
         hash_key ^= zob_piece[Pc(op, Pawn)][tsq];
         cl_bb[op] ^= SqBb(tsq);
         tp_bb[Pawn] ^= SqBb(tsq);
-        phase -= phase_value[Pawn];
         Accumulator.Del(op, Pawn, tsq);
         cnt[op][Pawn]--;
         break;
@@ -129,7 +127,6 @@ void Position::DoMove(int move, UNDO* u) {
         hash_key ^= zob_piece[Pc(sd, Pawn)][tsq] ^ zob_piece[Pc(sd, ftp)][tsq];
         tp_bb[Pawn] ^= SqBb(tsq);
         tp_bb[ftp] ^= SqBb(tsq);
-        phase += phase_value[ftp] - phase_value[Pawn];
         Accumulator.Del(sd, Pawn, tsq);
         Accumulator.Add(sd, ftp, tsq);
         cnt[sd][Pawn]--;

@@ -1,9 +1,11 @@
 #include "lizard.h"
 #include <stdio.h>
 #include <ctime>
+#include <math.h>
+#include <stdlib.h>
 
 
-double w0[] = {
+float w0[] = {
 
     // w0 white pawn
 
@@ -133,8 +135,8 @@ double w0[] = {
   0.000,  0.000,  0.000,  0.000,  0.000,  0.000,  0.000,  0.000,
   0.000,  0.000,  0.000,  0.000,  0.000,  0.000,  0.000,  0.0 };
 
-double wHidden[] = { 1.00,       -1.00,  0.19207816550360182, -0.28545539328691016,  0.396588188150865,   0.24695236128807903, -0.5362844906950327,  -0.36544576791639924, 0.5858902293789134, -4.983334886709058,  0.1159384389075866, -0.8235507819879793, -0.4827469992529991, 0.3952820198071656, 0.7431459595356849, -0.23778352844608216 };
-double wOutput[] = { 1000.00, -1000.00, -0.27538945931732184, -0.14496171160695885,  0.4059277750577273, -0.23205661176809835,  0.18803239356195105, -0.2353651271910541,  0.12724667051168264, -2.8969126345149547, -0.34088263659032823, 0.62767366336512556, -0.23397834187873325, 0.11224404425735584, -0.36588433552593305, 0.638889601555899493 };
+float wHidden[] = { 1.00,       -1.00,  0.19207816550360182, -0.28545539328691016,  0.396588188150865,   0.24695236128807903, -0.5362844906950327,  -0.36544576791639924, 0.5858902293789134,  -4.983334886709058,   0.1159384389075866, -0.8235507819879793,  -0.4827469992529991,  0.3952820198071656,   0.7431459595356849, -0.23778352844608216 };
+float wOutput[] = { 1000.00, -1000.00, -0.27538945931732184, -0.14496171160695885,  0.4059277750577273, -0.23205661176809835,  0.18803239356195105, -0.2353651271910541,  0.12724667051168264, -2.8969126345149547, -0.34088263659032823, 0.62767366336512556, -0.23397834187873325, 0.11224404425735584, -0.36588433552593305, 0.638889601555899493 };
 
 void cNetwork::Init(int x) {
 
@@ -145,10 +147,10 @@ void cNetwork::Init(int x) {
         outputWeights[i] = wHidden[i];
     }
 
-    LoadWeights("weights.bin");
+    LoadWeights("lizard_weights.bin");
     
-    //SaveWeights("weights.bin");
-   // Reset();
+    //SaveWeights("lizard_weights.bin");
+    //Reset();
 };
 
 void cNetwork::Reset() {
@@ -169,46 +171,27 @@ void cNetwork::Reset() {
         weights[1][i] += w0[i];
     }
 
-    SaveWeights("weights.bin");
+    SaveWeights("lizard_weights.bin");
 }
 
-void cNetwork::PerturbWeight(double x) {
+void cNetwork::PerturbWeight(float x) {
     // Generate a random index for the weight to perturb
     int i = rand() % 16;
     int j = rand() % 768;
     if (j < 7) j = rand() % 768;
 
     // Generate a random sign for the perturbation
-    double sign = (rand() % 2) ? 1.0 : -1.0;
+    float sign = (rand() % 2) ? 1.0 : -1.0;
 
     // Perturb the weight by x or -x
     weights[i][j] += sign * x;
 }
 
-void cNetwork::Xavier() {
+float cNetwork::GetXavierValue() {
 
-    srand(time(0));
-    double weights[64];
-
-    for (int i = 0; i < 64; i++) { 
-        weights[i] = GetXavierValue();
-    }
-
-    // Print the weights
-    for (int i = 0; i < 64; i++) {
-        printf("%f, ", weights[i]);
-        if ((i + 1) % 8 == 0) {
-            printf("\n");
-        }
-    }
-    printf("\n");
-}
-
-double cNetwork::GetXavierValue() {
-
-    double mean = 0;
-    double stddev = sqrt(1.0 / 768); // Xavier initialization
-    return (double)rand() / RAND_MAX * 2 * stddev - stddev;
+    float mean = 0;
+    float stddev = sqrt(1.0 / 768); // Xavier initialization
+    return (float)rand() / RAND_MAX * 2 * stddev - stddev;
 }
 
 void cNetwork::PrintWeights() {

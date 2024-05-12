@@ -101,11 +101,8 @@ void InitCaptures(Position* p, MOVES* m) {
 
 int NextCapture(MOVES* m) {
 
-    int move;
-
     while (m->next < m->last) {
-        move = SelectBest(m);
-        return move;
+        return SelectBest(m);
     }
     return 0;
 }

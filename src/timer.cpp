@@ -68,7 +68,7 @@ void sTimer::SetIterationTiming(void) {
 }
 
 int sTimer::FinishIteration(void) {
-  return (GetElapsedTime() >= iterationTime && !pondering && !data[FLAG_INFINITE]);
+  return (GetElapsedTime() >= iterationTime && !isPondering && !data[FLAG_INFINITE]);
 }
 
 int sTimer::GetMS(void) {

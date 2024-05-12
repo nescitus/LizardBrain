@@ -263,8 +263,8 @@ int *GenerateQuiet(Position *p, int *list) {
   return list;
 }
 
-int* SerializeMoves(int* list, U64 moves, int from)
-{
+int* SerializeMoves(int* list, U64 moves, int from) {
+
     while (moves) {
         int to = PopFirstBit(&moves);
         *list++ = CreateMove(from, to);
@@ -283,13 +283,11 @@ int* SerializePromotions(int* list, int from, int to)
     return list;
 }
 
-int CreateMove(int from, int to, int flag)
-{
+int CreateMove(int from, int to, int flag) {
     return (flag << 12) | (to << 6) | from;
 }
 
-int CreateMove(int from, int to)
-{
+int CreateMove(int from, int to) {
     return (to << 6) | from;
 }
 

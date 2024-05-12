@@ -7,7 +7,6 @@ void Init(void) {
   static const int p_moves[2][2] = {{15, 17}, {-17, -15}};
   static const int n_moves[8] = {-33, -31, -18, -14, 14, 18, 31, 33};
   static const int k_moves[8] = {-17, -16, -15, -1, 1, 15, 16, 17};
-  static const int line[8] = {0, 2, 4, 5, 5, 4, 2, 0};
 
   for (i = 0; i < 64; i++) {
     line_mask[0][i] = RANK_1_BB << (i & 070);
@@ -63,30 +62,6 @@ void Init(void) {
       x = Map0x88(i) + k_moves[j];
       if (!Sq0x88Off(x))
         k_attacks[i] |= SqBb(Unmap0x88(x));
-    }
-  }
-
-  // TODO: move to eval init
-
-  for (i = 0; i < 64; i++) {
-    passed_mask[White][i] = 0;
-    for (j = File(i) - 1; j <= File(i) + 1; j++) {
-      if ((File(i) == FILE_A && j == -1) ||
-          (File(i) == FILE_H && j == 8))
-        continue;
-      for (k = Rank(i) + 1; k <= RANK_8; k++)
-        passed_mask[White][i] |= SqBb(Sq(j, k));
-    }
-  }
-
-  for (i = 0; i < 64; i++) {
-    passed_mask[Black][i] = 0;
-    for (j = File(i) - 1; j <= File(i) + 1; j++) {
-      if ((File(i) == FILE_A && j == -1) ||
-          (File(i) == FILE_H && j == 8))
-        continue;
-      for (k = Rank(i) - 1; k >= RANK_1; k--)
-        passed_mask[Black][i] |= SqBb(Sq(j, k));
     }
   }
 

@@ -1,12 +1,12 @@
 #include "lizard.h"
 #include <ctime>
+#include <stdlib.h>
 
 #ifdef USE_TUNING
 
 double k_const = 1.335;
-int filter = 124; // 100
 
-void cTuner::Init() 
+void cTuner::Init(int filterValue) 
 {
     char line[256];
     char* pos;
@@ -15,11 +15,12 @@ void cTuner::Init()
     cnt10 = 0;
     cnt01 = 0;
     cnt05 = 0;
+    filter = filterValue;
     srand(time(0));
 
     FILE* epdFile = NULL;
     epdFile = fopen("quiet.epd", "r");
-    printf("reading epdFile 'quiet.epd' (%s)\n", epdFile == NULL ? "failure" : "success");
+    printf("reading epdFile 'new.epd' (%s)\n", epdFile == NULL ? "failure" : "success");
 
     if (epdFile == NULL) {
         printf("Epd file not found!");
@@ -53,6 +54,41 @@ void cTuner::Init()
 
     fclose(epdFile);
  
+    epdFile = fopen("new.epd", "r");
+    printf("reading epdFile 'new.epd' (%s)\n", epdFile == NULL ? "failure" : "success");
+
+    if (epdFile == NULL) {
+        printf("Epd file not found!");
+        return;
+    }
+
+    while (fgets(line, sizeof(line), epdFile)) {    // read positions line by line
+
+        while ((pos = strpbrk(line, "\r\n"))) *pos = '\0'; // cleanup
+        int stepOver = rand() % 1000;
+        if (stepOver > filter)
+            continue;
+        posString = line;
+        readCnt++;
+        if (readCnt % 1000000 == 0)
+            printf("%d positions loaded\n", readCnt);
+
+        if (posString.find("1/2-1/2") != std::string::npos) {
+            epd05[cnt05] = posString;
+            cnt05++;
+        }
+        else if (posString.find("1-0") != std::string::npos) {
+            epd10[cnt10] = posString;
+            cnt10++;
+        }
+        else if (posString.find("0-1") != std::string::npos) {
+            epd01[cnt01] = posString;
+            cnt01++;
+        }
+    }
+
+    fclose(epdFile);
+
     printf("%d Total positions loaded\n", readCnt);
 
 }
@@ -73,7 +109,7 @@ double cTuner::TexelFit(Position* p, int* pv) {
         SetPosition(p, cstr);
         delete[] cstr;
         //score = Quiesce(p, 0, -INF, INF, pv);
-        score = Evaluate(p, 0);
+        score = Evaluate(p);
         if (p->side == Black) score = -score;
         sigmoid = TexelSigmoid(score, k_const);
         sum += ((result - sigmoid) * (result - sigmoid));
@@ -88,7 +124,7 @@ double cTuner::TexelFit(Position* p, int* pv) {
         SetPosition(p, cstr);
         delete[] cstr;
         //score = Quiesce(p, 0, -INF, INF, pv);
-        score = Evaluate(p, 0);
+        score = Evaluate(p);
         if (p->side == Black) score = -score;
         sigmoid = TexelSigmoid(score, k_const);
         sum += ((result - sigmoid) * (result - sigmoid));
@@ -103,7 +139,7 @@ double cTuner::TexelFit(Position* p, int* pv) {
         SetPosition(p, cstr);
         delete[] cstr;
         //score = Quiesce(p, 0, -INF, INF, pv);
-        score = Evaluate(p, 0);
+        score = Evaluate(p);
         if (p->side == Black) score = -score;
         sigmoid = TexelSigmoid(score, k_const);
         sum += ((result - sigmoid) * (result - sigmoid));

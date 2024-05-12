@@ -70,7 +70,16 @@ void UciLoop(void) {
         Bench(atoi(token));
     }
     else if (strcmp(token, "train") == 0) {
-        OnTrainComand(p);
+        for (int i = 0; i < numberOfBatches; i++) {
+            printf("BATCH %d\n", i+1);
+            OnTrainComand(p);
+        }
+    } else if (strcmp(token, "fit") == 0) {
+#ifdef USE_TUNING
+        int pv[MAX_PLY];
+        Tuner.Init(1000);
+        printf("info string current fit: %lf\n", Tuner.TexelFit(p, pv));
+#endif
     } else if (strcmp(token, "quit") == 0) {
       exit(0);
     }
@@ -167,14 +176,14 @@ void ParseGo(Position *p, char *ptr) {
   int pv[MAX_PLY];
 
   Timer.Clear();
-  pondering = 0;
+  isPondering = 0;
 
   for (;;) {
     ptr = ParseToken(ptr, token);
     if (*token == '\0')
       break;
     if (strcmp(token, "ponder") == 0) {
-      pondering = 1;
+      isPondering = 1;
     } else if (strcmp(token, "wtime") == 0) {
       ptr = ParseToken(ptr, token);
       Timer.SetData(W_TIME, atoi(token));
@@ -214,31 +223,27 @@ void ResetEngine(void) {
 
   ClearHist();
   ClearTrans();
-  ClearEvalHash();
 }
 
-void OnTrainComand(Position* p)
-{
+void OnTrainComand(Position* p) {
+
 #ifdef USE_TUNING
     int pv[MAX_PLY];
-    Tuner.Init();
+    Tuner.Init(5);
     double best = Tuner.TexelFit(p, pv);
     Network.Init(0);
     srand(time(0));
 
-    for (int i = 0; i < 12880; i++) {
-        Network.PerturbWeight(0.035);
+    for (int i = 0; i < changesPerBatch; i++) {
+        Network.PerturbWeight(weightChange);
         double fit = Tuner.TexelFit(p, pv);
         if (fit < best) {
             best = fit;
-            Network.SaveWeights("weights.bin");
+            Network.SaveWeights("lizard_weights.bin");
             printf("step %d fit %lf\n", i, fit);
+        } else {
+            Network.LoadWeights("lizard_weights.bin");
         }
-        else
-        {
-            Network.LoadWeights("weights.bin");
-        }
-
     }
 #endif
 }

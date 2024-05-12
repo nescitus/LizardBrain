@@ -64,7 +64,7 @@ int Search(Position *p, int ply, int alpha, int beta, int depth, int was_null, i
   // Safeguard against exceeding ply limit
   
   if (ply >= MAX_PLY - 1)
-    return Evaluate(p, 1);
+    return Evaluate(p);
 
   // Are we in check? Knowing that is useful when it comes 
   // to pruning/reduction decisions
@@ -77,7 +77,7 @@ int Search(Position *p, int ply, int alpha, int beta, int depth, int was_null, i
 
   int eval = -INF;
   if (!isInCheck)
-      eval = Evaluate(p, 1);
+      eval = Evaluate(p);
 
   oldEval[ply] = eval;
 
@@ -141,7 +141,7 @@ int Search(Position *p, int ply, int alpha, int beta, int depth, int was_null, i
 
   if (depth <= 6
   && isNodePrunable) {
-    if (Evaluate(p, 1) + 50 + 50 * depth < beta) 
+    if (Evaluate(p) + 50 + 50 * depth < beta) 
         canDoFutility = 1;
   }
 
@@ -159,7 +159,6 @@ int Search(Position *p, int ply, int alpha, int beta, int depth, int was_null, i
           seeScore = Swap(p, Fsq(move), Tsq(move));
       }
   
-
     p->DoMove(move, undoData);
     if (Illegal(p)) { p->UndoMove(move, undoData); continue; }
 
@@ -352,7 +351,7 @@ void CheckForTimeout(void) {
     if (strcmp(command, "stop") == 0)
       abort_search = 1;
     else if (strcmp(command, "ponderhit") == 0)
-      pondering = 0;
+      isPondering = 0;
   }
 
   if (Timeout()) abort_search = 1;
@@ -360,5 +359,5 @@ void CheckForTimeout(void) {
 
 int Timeout() {
 
-  return (!pondering && !Timer.IsInfiniteMode() && Timer.TimeHasElapsed());
+  return (!isPondering && !Timer.IsInfiniteMode() && Timer.TimeHasElapsed());
 }

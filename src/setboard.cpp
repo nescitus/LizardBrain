@@ -1,13 +1,13 @@
-//  Rodent, a UCI chess playing engine derived from Sungorus 1.4
+//  LizardBrain, a UCI chess playing engine derived from Sungorus 1.4
 //  Copyright (C) 2009-2011 Pablo Vazquez (Sungorus author)
-//  Copyright (C) 2011-2015 Pawel Koziol
+//  Copyright (C) 2024 Pawel Koziol
 //
-//  Rodent is free software: you can redistribute it and/or modify
+//  LizardBrain is free software: you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License as published
 //  by the Free Software Foundation, either version 3 of the License,
 //  or (at your option) any later version.
 //
-//  Rodent is distributed in the hope that it will be useful,
+//  LizardBrain is distributed in the hope that it will be useful,
 //  but WITHOUT ANY WARRANTY; without even the implied warranty
 //  of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 //  See the GNU General Public License for more details.
@@ -25,8 +25,6 @@ void SetPosition(Position *p, char *epd) {
   for (int i = 0; i < 2; i++) {
     p->cl_bb[i] = 0;
   }
-
-  p->phase = 0;
 
   for (int i = 0; i < 6; i++) {
     p->tp_bb[i] = 0;
@@ -53,9 +51,7 @@ void SetPosition(Position *p, char *epd) {
         p->tp_bb[Tp(pc)] ^= SqBb(i + j);
         
     if (Tp(pc) == King)
-      p->king_sq[Cl(pc)] = i + j;
-
-        p->phase += phase_value[Tp(pc)];
+        p->king_sq[Cl(pc)] = i + j;
         p->cnt[Cl(pc)][Tp(pc)]++;
         j++;
       }

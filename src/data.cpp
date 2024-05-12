@@ -5,8 +5,6 @@ U64 attacks[4][64][64];
 U64 p_attacks[2][64];
 U64 n_attacks[64];
 U64 k_attacks[64];
-U64 passed_mask[2][64];
-U64 adjacent_mask[8];
 int castle_mask[64];
 const int bit_table[64] = {
    0,  1,  2,  7,  3, 13,  8, 19,
@@ -28,7 +26,7 @@ int killer[MAX_PLY][2];
 U64 zob_piece[12][64];
 U64 zob_castle[16];
 U64 zob_ep[8];
-int pondering;
+int isPondering;
 int root_depth;
 U64 nodes;
 int abort_search;

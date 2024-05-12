@@ -1,5 +1,5 @@
 // REGEX to count all the lines under MSVC 13: ^(?([^\r\n])\s)*[^\s+?/]+[^\n]*$
-// 2625 lines
+// 2594 lines
 
 enum eColor{White, Black, NO_CL};
 enum ePieceType{Pawn, Knight, Bishop, Rook, Queen, King, NO_TP};
@@ -127,9 +127,7 @@ public:
   U64 tp_bb[6];
   int pc[64];
   int king_sq[2];
-  int mat[2];
   int cnt[2][6];
-  int phase;
   int side;
   int castle_flags;
   int ep_sq;
@@ -173,7 +171,6 @@ typedef struct {
   unsigned char depth;
 } ENTRY;
 
-void Add(int sd, int factor, int mg_bonus, int eg_bonus);
 void AllocTrans(int mbsize);
 int Attacked(Position *p, int sq, int side);
 U64 AttacksFrom(Position *p, int sq);
@@ -188,7 +185,7 @@ int CreateMove(int from, int to);
 int CreateMove(int from, int to, int flag);
 void DisplayPv(int score, int *pv);
 int EvalNN(Position* p);
-int Evaluate(Position * p, int use_hash);
+int Evaluate(Position * p);
 int *GenerateCaptures(Position *p, int *list);
 int *GenerateQuiet(Position *p, int *list);
 int GetDrawFactor(Position *p, int sd);
@@ -245,22 +242,16 @@ extern U64 attacks[4][64][64];
 extern U64 p_attacks[2][64];
 extern U64 n_attacks[64];
 extern U64 k_attacks[64];
-extern U64 passed_mask[2][64];
-extern U64 adjacent_mask[8];
-extern int mg_pst_data[2][6][64];
-extern int eg_pst_data[2][6][64];
 extern int castle_mask[64];
 extern const int bit_table[64];
-extern const int passed_bonus[2][8];
 extern const int tp_value[7];
-extern const int phase_value[7];
 extern int history[12][64];
 extern int triedHistory[12][64];
 extern int killer[MAX_PLY][2];
 extern U64 zob_piece[12][64];
 extern U64 zob_castle[16];
 extern U64 zob_ep[8];
-extern int pondering;
+extern int isPondering;
 extern int root_depth;
 extern U64 nodes;
 extern int abort_search;
@@ -272,7 +263,7 @@ extern double lmrSize[2][MAX_PLY][MAX_MOVES];
 
 class cAccumulator {
 public:
-	double hidden[16];
+	float hidden[16];
 	void SetFromScratch(Position* p);
 	void Clear();
 	void Add(int cl, int pc, int sq);
@@ -283,28 +274,36 @@ extern cAccumulator Accumulator;
 
 class cNetwork {
 private:
-	double cNetwork::GetXavierValue();
+	float cNetwork::GetXavierValue();
 public:
 	void Reset();
-	void Xavier();
 	void Init(int x);
-	double weights[16][768];
-	double hiddenWeights[16];
-	double outputWeights[16];
-	double finalWeight;
+	float weights[16][768];
+	float hiddenWeights[16];
+	float outputWeights[16];
+	float finalWeight;
 	void PrintWeights();
 	void SaveWeights(const char* filename);
 	void LoadWeights(const char* filename);
-	void PerturbWeight(double val);
+	void PerturbWeight(float val);
 };
 
 extern cNetwork Network;
 
 int Idx(int x, int y, int z);
 
-//int RelSq(int c, int s);
+// 85.234354 
+// 65.557590
+// 64.781639
+// 62.897225
+// 61.819459
+// 61.406074
 
-#define USE_TUNING
+const float weightChange = 0.015;
+const int numberOfBatches = 1000;
+const int changesPerBatch = 100; // leave as it is
+
+//#define USE_TUNING
 
 #ifdef USE_TUNING
 
@@ -314,21 +313,17 @@ int Idx(int x, int y, int z);
 
 class cTuner {
 public:
-	int adjust[64];
-	int addition[2][64];
-	int secretIngredient;
-	int otherIngredient;
 	int cnt10;
 	int cnt01;
 	int cnt05;
 	std::string epd10[10000000];
 	std::string epd01[10000000];
 	std::string epd05[10000000];
+	int filter;
 
-	void Init();
+	void Init(int filterValue);
 	double TexelFit(Position* p, int* pv);
 	double TexelSigmoid(int score, double k);
-
 };
 
 extern cTuner Tuner;

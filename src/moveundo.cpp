@@ -1,13 +1,13 @@
-//  Rodent, a UCI chess playing engine derived from Sungorus 1.4
+//  LizardBrain, a UCI chess playing engine derived from Sungorus 1.4
 //  Copyright (C) 2009-2011 Pablo Vazquez (Sungorus author)
-//  Copyright (C) 2011-2015 Pawel Koziol
+//  Copyright (C) 2024 Pawel Koziol
 //
-//  Rodent is free software: you can redistribute it and/or modify
+//  LizardBrain is free software: you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License as published
 //  by the Free Software Foundation, either version 3 of the License,
 //  or (at your option) any later version.
 //
-//  Rodent is distributed in the hope that it will be useful,
+//  LizardBrain is distributed in the hope that it will be useful,
 //  but WITHOUT ANY WARRANTY; without even the implied warranty
 //  of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 //  See the GNU General Public License for more details.
@@ -48,7 +48,6 @@ void Position::UndoMove(int move, UNDO* u) {
         pc[tsq] = Pc(op, ttp);
         cl_bb[op] ^= SqBb(tsq);
         tp_bb[ttp] ^= SqBb(tsq);
-        phase += phase_value[ttp];
         Accumulator.Add(op, ttp, tsq);
         cnt[op][ttp]++;
     }
@@ -82,7 +81,6 @@ void Position::UndoMove(int move, UNDO* u) {
         pc[tsq] = Pc(op, Pawn);
         cl_bb[op] ^= SqBb(tsq);
         tp_bb[Pawn] ^= SqBb(tsq);
-        phase += phase_value[Pawn];
         Accumulator.Add(op, Pawn, tsq);
         cnt[op][Pawn]++;
         break;
@@ -94,7 +92,6 @@ void Position::UndoMove(int move, UNDO* u) {
         pc[fsq] = Pc(sd, Pawn);
         tp_bb[Pawn] ^= SqBb(fsq);
         tp_bb[ftp] ^= SqBb(fsq);
-        phase += phase_value[Pawn] - phase_value[ftp];
         Accumulator.Del(sd, ftp, fsq);
         Accumulator.Add(sd, Pawn, fsq);
         cnt[sd][Pawn]++;

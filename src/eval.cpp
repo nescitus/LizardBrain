@@ -2,13 +2,10 @@
 #include <stdio.h>
 #include "lizard.h"
 
-double nnValue;
+float nnValue;
 const int hiddenLayerSize = 16;
 
-static const int maxPhase = 24;
-const int phase_value[7] = { 0, 1, 1, 2, 4, 0, 0 };
-
-int Evaluate(Position* p, int use_hash) {
+int Evaluate(Position* p) {
 
     int score = EvalNN(p);
     
@@ -32,13 +29,14 @@ int Evaluate(Position* p, int use_hash) {
     return p->side == White ? score : -score;
 }
 
-int EvalNN(Position* p) 
-{
+int EvalNN(Position* p) {
+
     // Neural network chess evaluation
 
     nnValue = 0; // external
-    double hidden[hiddenLayerSize];
-    double output[hiddenLayerSize];
+    float hidden[hiddenLayerSize];
+    float output[hiddenLayerSize];
+
     for (int i = 0; i < hiddenLayerSize; i++) {
         hidden[i] = 0;
         output[i] = 0;
