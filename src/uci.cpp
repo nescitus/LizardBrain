@@ -77,7 +77,7 @@ void UciLoop(void) {
     } else if (strcmp(token, "fit") == 0) {
 #ifdef USE_TUNING
         int pv[MAX_PLY];
-        Tuner.Init(1000);
+        Tuner.InitBatch(100000);
         printf("info string current fit: %lf\n", Tuner.TexelFit(p, pv));
 #endif
     } else if (strcmp(token, "quit") == 0) {
@@ -229,7 +229,7 @@ void OnTrainComand(Position* p) {
 
 #ifdef USE_TUNING
     int pv[MAX_PLY];
-    Tuner.Init(5);
+    Tuner.InitBatch(batchFilter);
     double best = Tuner.TexelFit(p, pv);
     Network.Init(0);
     srand(time(0));

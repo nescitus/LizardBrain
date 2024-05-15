@@ -292,18 +292,20 @@ extern cNetwork Network;
 
 int Idx(int x, int y, int z);
 
-// 85.234354 
-// 65.557590
-// 64.781639
-// 62.897225
-// 61.819459
-// 61.406074
+// 116.021843
+//  96.001194
+//  92.874891
+//  91.8
+//  90.319708
+//  89.354210
+//  88.562014
 
-const float weightChange = 0.015;
-const int numberOfBatches = 1000;
+const float weightChange = 0.025;
+const int numberOfBatches = 100;
 const int changesPerBatch = 100; // leave as it is
+const int batchFilter = 100;
 
-//#define USE_TUNING
+#define USE_TUNING
 
 #ifdef USE_TUNING
 
@@ -313,15 +315,17 @@ const int changesPerBatch = 100; // leave as it is
 
 class cTuner {
 public:
+	int allCnt;
 	int cnt10;
 	int cnt01;
 	int cnt05;
+	std::string allEpd[25000000];
 	std::string epd10[10000000];
 	std::string epd01[10000000];
 	std::string epd05[10000000];
-	int filter;
 
-	void Init(int filterValue);
+	void LoadAll();
+	void InitBatch(int filterValue);
 	double TexelFit(Position* p, int* pv);
 	double TexelSigmoid(int score, double k);
 };

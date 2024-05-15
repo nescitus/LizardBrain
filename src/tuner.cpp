@@ -6,37 +6,84 @@
 
 double k_const = 1.335;
 
-void cTuner::Init(int filterValue) 
-{
+void cTuner::LoadAll() {
+
     char line[256];
     char* pos;
+    allCnt = 0;
+
+    FILE* epdFile = NULL;
+    epdFile = fopen("quiet.epd", "r");
+    printf("reading epdFile 'quiet.epd' (%s)\n", epdFile == NULL ? "failure" : "success");
+
+    while (fgets(line, sizeof(line), epdFile)) {    // read positions line by line
+
+        while ((pos = strpbrk(line, "\r\n"))) *pos = '\0'; // cleanup
+
+        allEpd[allCnt] = line;
+        allCnt++;
+        if (allCnt % 1000000 == 0)
+            printf("%d positions loaded\n", allCnt);
+    }
+
+    fclose(epdFile);
+    
+    epdFile = fopen("new.epd", "r");
+    printf("reading epdFile 'new.epd' (%s)\n", epdFile == NULL ? "failure" : "success");
+
+    while (fgets(line, sizeof(line), epdFile)) {    // read positions line by line
+
+        while ((pos = strpbrk(line, "\r\n"))) *pos = '\0'; // cleanup
+
+        allEpd[allCnt] = line;
+        allCnt++;
+        if (allCnt % 1000000 == 0)
+            printf("%d positions loaded\n", allCnt);
+    }
+
+    fclose(epdFile);
+
+    epdFile = fopen("filtered.epd", "r");
+    printf("reading epdFile 'filtered.epd' (%s)\n", epdFile == NULL ? "failure" : "success");
+
+    while (fgets(line, sizeof(line), epdFile)) {    // read positions line by line
+
+        while ((pos = strpbrk(line, "\r\n"))) *pos = '\0'; // cleanup
+
+        allEpd[allCnt] = line;
+        allCnt++;
+        if (allCnt % 1000000 == 0)
+            printf("%d positions loaded\n", allCnt);
+    }
+
+    fclose(epdFile);
+
+    printf("%d positions loaded\n", allCnt);
+
+}
+
+void cTuner::InitBatch(int filterValue) 
+{
+    char line[256];
     std::string posString;
     int readCnt = 0;
     cnt10 = 0;
     cnt01 = 0;
     cnt05 = 0;
-    filter = filterValue;
     srand(time(0));
 
-    FILE* epdFile = NULL;
-    epdFile = fopen("quiet.epd", "r");
-    printf("reading epdFile 'new.epd' (%s)\n", epdFile == NULL ? "failure" : "success");
+    for (int i = 0; i < allCnt; i++) {
 
-    if (epdFile == NULL) {
-        printf("Epd file not found!");
-        return;
-    }
+        // filtering to cut the batch to size
 
-    while (fgets(line, sizeof(line), epdFile)) {    // read positions line by line
-
-        while ((pos = strpbrk(line, "\r\n"))) *pos = '\0'; // cleanup
-        int stepOver = rand() % 1000;
-        if (stepOver > filter)
+        int stepOver = rand() % 100000;
+        if (stepOver > filterValue)
             continue;
-        posString = line;
+
+        // sorting strings by game result
+
+        posString = allEpd[i];
         readCnt++;
-        if (readCnt % 1000000 == 0)
-            printf("%d positions loaded\n", readCnt);
 
         if (posString.find("1/2-1/2") != std::string::npos) {
             epd05[cnt05] = posString;
@@ -51,46 +98,8 @@ void cTuner::Init(int filterValue)
             cnt01++;
         }
     }
-
-    fclose(epdFile);
- 
-    epdFile = fopen("new.epd", "r");
-    printf("reading epdFile 'new.epd' (%s)\n", epdFile == NULL ? "failure" : "success");
-
-    if (epdFile == NULL) {
-        printf("Epd file not found!");
-        return;
-    }
-
-    while (fgets(line, sizeof(line), epdFile)) {    // read positions line by line
-
-        while ((pos = strpbrk(line, "\r\n"))) *pos = '\0'; // cleanup
-        int stepOver = rand() % 1000;
-        if (stepOver > filter)
-            continue;
-        posString = line;
-        readCnt++;
-        if (readCnt % 1000000 == 0)
-            printf("%d positions loaded\n", readCnt);
-
-        if (posString.find("1/2-1/2") != std::string::npos) {
-            epd05[cnt05] = posString;
-            cnt05++;
-        }
-        else if (posString.find("1-0") != std::string::npos) {
-            epd10[cnt10] = posString;
-            cnt10++;
-        }
-        else if (posString.find("0-1") != std::string::npos) {
-            epd01[cnt01] = posString;
-            cnt01++;
-        }
-    }
-
-    fclose(epdFile);
 
     printf("%d Total positions loaded\n", readCnt);
-
 }
 
 double cTuner::TexelFit(Position* p, int* pv) {
