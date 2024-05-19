@@ -1,8 +1,9 @@
 #include "lizard.h"
 
 void cAccumulator::Clear() {
-    for (int i = 0; i < 16; i++)
-        hidden[i] = 0;
+    for (int i = 0; i < 16; i++) {
+        hidden[i] = Network.weights[i][0];
+        }
 }
 
 void cAccumulator::Add(int cl, int pc, int sq) {

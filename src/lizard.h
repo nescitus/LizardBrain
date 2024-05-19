@@ -186,6 +186,8 @@ int CreateMove(int from, int to, int flag);
 void DisplayPv(int score, int *pv);
 int EvalNN(Position* p);
 int Evaluate(Position * p);
+int EvalPieces(Position* p, int side);
+int EvalPawns(Position* p, int sd);
 int *GenerateCaptures(Position *p, int *list);
 int *GenerateQuiet(Position *p, int *list);
 int GetDrawFactor(Position *p, int sd);
@@ -243,6 +245,8 @@ extern U64 p_attacks[2][64];
 extern U64 n_attacks[64];
 extern U64 k_attacks[64];
 extern int castle_mask[64];
+extern U64 passed_mask[2][64];
+extern U64 support_mask[2][64];
 extern const int bit_table[64];
 extern const int tp_value[7];
 extern int history[12][64];
@@ -292,18 +296,22 @@ extern cNetwork Network;
 
 int Idx(int x, int y, int z);
 
-// 116.021843
-//  96.001194
-//  92.874891
-//  91.8
-//  90.319708
-//  89.354210
-//  88.562014
+// 88.368804
+// 84.900736
+// 79.083680
+// 71.685580
+// 69.558795
+// 68.325178
+// 66.057237
+// 64.489991
 
-const float weightChange = 0.025;
-const int numberOfBatches = 100;
+// 62.324631  57,0% (200 games)
+// 61.804024  58,2% (200 games) 40,5 vs fruit
+
+const float weightChange = 0.010;
+const int numberOfBatches = 300;
 const int changesPerBatch = 100; // leave as it is
-const int batchFilter = 100;
+const int batchFilter = 600;
 
 #define USE_TUNING
 
@@ -333,3 +341,8 @@ public:
 extern cTuner Tuner;
 
 #endif
+
+const int passed_bonus[2][8] = {
+  {0,  10, 10, 20, 30,  40,  50, 0},
+  {0,  50, 40, 30, 20,  10,  10, 0}
+};

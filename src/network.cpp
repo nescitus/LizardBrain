@@ -178,7 +178,7 @@ void cNetwork::PerturbWeight(float x) {
     // Generate a random index for the weight to perturb
     int i = rand() % 16;
     int j = rand() % 768;
-    if (j < 7) j = rand() % 768;
+    if (j < 7 && j != 0) j = rand() % 768;
 
     // Generate a random sign for the perturbation
     float sign = (rand() % 2) ? 1.0 : -1.0;

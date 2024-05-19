@@ -8,6 +8,9 @@ const int hiddenLayerSize = 16;
 int Evaluate(Position* p) {
 
     int score = EvalNN(p);
+
+    score += EvalPieces(p, White);
+    score -= EvalPieces(p, Black);
     
     // Scale down drawish endgames
 
@@ -65,4 +68,57 @@ int EvalNN(Position* p) {
 
 int Idx(int x, int y, int z) {
     return 64 * (6 * x + y) + z;
+}
+
+int EvalPieces(Position* p, int side) {
+
+    U64 bbPieces, bbMob;
+    int sq, cnt;
+    int result = 0;
+
+    bbPieces = p->Map(side, Knight);
+    while (bbPieces) {
+        sq = PopFirstBit(&bbPieces);
+
+        // Knight mobility
+
+        bbMob = n_attacks[sq] & ~p->cl_bb[side];
+        cnt = PopCnt(bbMob) - 4;
+        result += 4 * cnt;
+    }
+
+    bbPieces = p->Map(side, Bishop);
+    while (bbPieces) {
+        sq = PopFirstBit(&bbPieces);
+
+        // Bishop mobility
+
+        bbMob = BAttacks(OccBb(p), sq);
+        cnt = PopCnt(bbMob) - 7;
+        result += 5 * cnt;
+    }
+
+    bbPieces = p->Map(side, Rook);
+    while (bbPieces) {
+        sq = PopFirstBit(&bbPieces);
+
+        // Rook mobility
+
+        bbMob = RAttacks(OccBb(p), sq);
+        cnt = PopCnt(bbMob) - 7;
+        result += 2 * cnt;
+    }
+
+    bbPieces = p->Map(side, Queen);
+    while (bbPieces) {
+        sq = PopFirstBit(&bbPieces);
+
+        // Queen mobility
+
+        bbMob = BAttacks(OccBb(p), sq);
+        cnt = PopCnt(bbMob) - 14;
+        result += 1 * cnt;
+    }
+
+    return result;
 }

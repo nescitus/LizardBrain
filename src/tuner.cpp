@@ -43,6 +43,7 @@ void cTuner::LoadAll() {
 
     fclose(epdFile);
 
+    /*
     epdFile = fopen("filtered.epd", "r");
     printf("reading epdFile 'filtered.epd' (%s)\n", epdFile == NULL ? "failure" : "success");
 
@@ -55,8 +56,10 @@ void cTuner::LoadAll() {
         if (allCnt % 1000000 == 0)
             printf("%d positions loaded\n", allCnt);
     }
+    
 
     fclose(epdFile);
+    */
 
     printf("%d positions loaded\n", allCnt);
 
@@ -112,46 +115,49 @@ double cTuner::TexelFit(Position* p, int* pv) {
     double result = 1;
 
     for (int i = 0; i < cnt10; ++i) {
-        iteration++;
         char* cstr = new char[epd10[i].length() + 1];
         strcpy(cstr, epd10[i].c_str());
         SetPosition(p, cstr);
         delete[] cstr;
+        if (InCheck(p)) continue;
         //score = Quiesce(p, 0, -INF, INF, pv);
         score = Evaluate(p);
         if (p->side == Black) score = -score;
         sigmoid = TexelSigmoid(score, k_const);
         sum += ((result - sigmoid) * (result - sigmoid));
+        iteration++;
     }
 
     result = 0;
 
     for (int i = 0; i < cnt01; ++i) {
-        iteration++;
         char* cstr = new char[epd01[i].length() + 1];
         strcpy(cstr, epd01[i].c_str());
         SetPosition(p, cstr);
         delete[] cstr;
+        if (InCheck(p)) continue;
         //score = Quiesce(p, 0, -INF, INF, pv);
         score = Evaluate(p);
         if (p->side == Black) score = -score;
         sigmoid = TexelSigmoid(score, k_const);
         sum += ((result - sigmoid) * (result - sigmoid));
+        iteration++;
     }
 
     result = 0.5;
 
     for (int i = 0; i < cnt05; ++i) {
-        iteration++;
         char* cstr = new char[epd05[i].length() + 1];
         strcpy(cstr, epd05[i].c_str());
         SetPosition(p, cstr);
         delete[] cstr;
+        if (InCheck(p)) continue;
         //score = Quiesce(p, 0, -INF, INF, pv);
         score = Evaluate(p);
         if (p->side == Black) score = -score;
         sigmoid = TexelSigmoid(score, k_const);
         sum += ((result - sigmoid) * (result - sigmoid));
+        iteration++;
     }
 
     //return (1.0 / iteration) * sum;

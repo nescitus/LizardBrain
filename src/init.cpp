@@ -65,6 +65,28 @@ void Init(void) {
     }
   }
 
+  for (i = 0; i < 64; i++) {
+      passed_mask[White][i] = 0;
+      for (j = File(i) - 1; j <= File(i) + 1; j++) {
+          if ((File(i) == FILE_A && j == -1) ||
+              (File(i) == FILE_H && j == 8))
+              continue;
+          for (k = Rank(i) + 1; k <= RANK_8; k++)
+              passed_mask[White][i] |= SqBb(Sq(j, k));
+      }
+  }
+
+  for (i = 0; i < 64; i++) {
+      passed_mask[Black][i] = 0;
+      for (j = File(i) - 1; j <= File(i) + 1; j++) {
+          if ((File(i) == FILE_A && j == -1) ||
+              (File(i) == FILE_H && j == 8))
+              continue;
+          for (k = Rank(i) - 1; k >= RANK_1; k--)
+              passed_mask[Black][i] |= SqBb(Sq(j, k));
+      }
+  }
+
   for (i = 0; i < 64; i++)
     castle_mask[i] = 15;
 

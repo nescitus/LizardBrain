@@ -16,6 +16,8 @@ const int bit_table[64] = {
   62, 11, 23, 32, 36, 44, 52, 55,
   61, 22, 43, 51, 60, 42, 59, 58
 };
+U64 passed_mask[2][64];
+U64 support_mask[2][64];
 
 const int tp_value[7] = {
   100, 325, 325, 500, 1000, 0, 0
