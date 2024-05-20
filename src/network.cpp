@@ -147,7 +147,7 @@ void cNetwork::Init(int x) {
         outputWeights[i] = wHidden[i];
     }
 
-    LoadWeights("lizard_weights.bin");
+    LoadWeights("quantized.bin");
     
     //SaveWeights("lizard_weights.bin");
     //Reset();
@@ -159,7 +159,7 @@ void cNetwork::Reset() {
 
     for (int i = 0; i < 16; i++)
         for (int j = 0; j < 768; j++) {
-            weights[i][j] = GetXavierValue();
+            quantized[i][j] = GetXavierValue()*scaleFactor;
         }
 
     // Pre-initialize first two tables
@@ -167,24 +167,24 @@ void cNetwork::Reset() {
     //  for minor pieces)
 
     for (int i = 0; i < 768; i++) {
-        weights[0][i] += w0[i];
-        weights[1][i] += w0[i];
+        quantized[0][i] += w0[i];
+        quantized[1][i] += w0[i];
     }
 
-    SaveWeights("lizard_weights.bin");
+    SaveWeights("quantized.bin");
 }
 
-void cNetwork::PerturbWeight(float x) {
+void cNetwork::PerturbWeight(int x) {
     // Generate a random index for the weight to perturb
     int i = rand() % 16;
     int j = rand() % 768;
     if (j < 7 && j != 0) j = rand() % 768;
 
     // Generate a random sign for the perturbation
-    float sign = (rand() % 2) ? 1.0 : -1.0;
+    int sign = (rand() % 2) ? 1 : -1;
 
     // Perturb the weight by x or -x
-    weights[i][j] += sign * x;
+    quantized[i][j] += sign * x;
 }
 
 float cNetwork::GetXavierValue() {
@@ -192,24 +192,6 @@ float cNetwork::GetXavierValue() {
     float mean = 0;
     float stddev = sqrt(1.0 / 768); // Xavier initialization
     return (float)rand() / RAND_MAX * 2 * stddev - stddev;
-}
-
-void cNetwork::PrintWeights() {
-
-    for (int i = 0; i < 16; i++) {
-        for (int j = 0; j < 768; j++) {
-            printf("[%d]:%.4f ", j, weights[i][j]);
-            if ((j + 1) % 8 == 0) {
-                printf("\n");
-            }
-            if ((j + 1) % 64 == 0) {
-                printf("\n");
-            }
-        }
-        if ((i + 1) % 4 == 0) {
-            printf("\n");
-        }
-    }
 }
 
 void cNetwork::SaveWeights(const char* filename) {
@@ -227,7 +209,7 @@ void cNetwork::SaveWeights(const char* filename) {
     // Write the weights to the file
     for (int i = 0; i < 16; i++) {
         for (int j = 0; j < 768; j++) {
-            fwrite(&weights[i][j], sizeof(weights[i][j]), 1, file);
+            fwrite(&quantized[i][j], sizeof(quantized[i][j]), 1, file);
         }
     }
 
@@ -236,6 +218,9 @@ void cNetwork::SaveWeights(const char* filename) {
 
 void cNetwork::LoadWeights(const char* filename) {
     FILE* file = fopen(filename, "rb");
+
+    int min = 32000;
+    int max = -32000;
 
     if (!file) {
         perror("Error opening file for reading");
@@ -255,9 +240,10 @@ void cNetwork::LoadWeights(const char* filename) {
     // Read the weights from the file
     for (int i = 0; i < 16; i++) {
         for (int j = 0; j < 768; j++) {
-            fread(&weights[i][j], sizeof(weights[i][j]), 1, file);
+            fread(&quantized[i][j], sizeof(quantized[i][j]), 1, file);
         }
     }
 
     fclose(file);
+    //printf("min %d max %d", min, max);
 }

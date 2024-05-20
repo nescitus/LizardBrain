@@ -239,10 +239,10 @@ void OnTrainComand(Position* p) {
         double fit = Tuner.TexelFit(p, pv);
         if (fit < best) {
             best = fit;
-            Network.SaveWeights("lizard_weights.bin");
+            Network.SaveWeights("quantized.bin");
             printf("step %d fit %lf\n", i, fit);
         } else {
-            Network.LoadWeights("lizard_weights.bin");
+            Network.LoadWeights("quantized.bin");
         }
     }
 #endif

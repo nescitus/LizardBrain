@@ -31,8 +31,8 @@ int Search(Position *p, int ply, int alpha, int beta, int depth, int was_null, i
 
   nodes++;
   CheckForTimeout();
-  if (nodes % 100000 == 0)
-      Accumulator.SetFromScratch(p);
+ //if (nodes % 100000 == 0)
+ //     Accumulator.SetFromScratch(p);
 
   // Quick exit on a timeout or on a statically detected draw
   

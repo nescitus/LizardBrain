@@ -2,7 +2,7 @@
 
 void cAccumulator::Clear() {
     for (int i = 0; i < 16; i++) {
-        hidden[i] = Network.weights[i][0];
+        hidden[i] = 0;
         }
 }
 
@@ -11,7 +11,7 @@ void cAccumulator::Add(int cl, int pc, int sq) {
     int idx = Idx(cl, pc, sq);
 
     for (int i = 0; i < 16; i++)
-        hidden[i] += Network.weights[i][idx];
+        hidden[i] += Network.quantized[i][idx];
 }
 
 void cAccumulator::Del(int cl, int pc, int sq) {
@@ -19,7 +19,7 @@ void cAccumulator::Del(int cl, int pc, int sq) {
     int idx = Idx(cl, pc, sq);
 
     for (int i = 0; i < 16; i++)
-        hidden[i] -= Network.weights[i][idx];
+        hidden[i] -= Network.quantized[i][idx];
 }
 
 void cAccumulator::SetFromScratch(Position* p) {

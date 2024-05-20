@@ -267,7 +267,7 @@ extern double lmrSize[2][MAX_PLY][MAX_MOVES];
 
 class cAccumulator {
 public:
-	float hidden[16];
+	int hidden[16];
 	void SetFromScratch(Position* p);
 	void Clear();
 	void Add(int cl, int pc, int sq);
@@ -282,38 +282,38 @@ private:
 public:
 	void Reset();
 	void Init(int x);
-	float weights[16][768];
+	int quantized[16][768];
 	float hiddenWeights[16];
 	float outputWeights[16];
 	float finalWeight;
-	void PrintWeights();
 	void SaveWeights(const char* filename);
 	void LoadWeights(const char* filename);
-	void PerturbWeight(float val);
+	void PerturbWeight(int val);
 };
 
 extern cNetwork Network;
 
+struct sEvalHashEntry {
+	U64 key;
+	int score;
+};
+
+#define EVAL_HASH_SIZE 512*512
+
 int Idx(int x, int y, int z);
 
-// 88.368804
-// 84.900736
-// 79.083680
-// 71.685580
-// 69.558795
-// 68.325178
-// 66.057237
-// 64.489991
+// 63.099306
+// 61.573843
 
-// 62.324631  57,0% (200 games)
-// 61.804024  58,2% (200 games) 40,5 vs fruit
+#include <math.h>
 
-const float weightChange = 0.010;
-const int numberOfBatches = 300;
+const int scaleFactor = 1000000;
+const int weightChange = (int)round(0.007 * scaleFactor);
+const int numberOfBatches = 100;
 const int changesPerBatch = 100; // leave as it is
 const int batchFilter = 600;
 
-#define USE_TUNING
+//#define USE_TUNING
 
 #ifdef USE_TUNING
 
