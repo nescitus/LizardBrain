@@ -265,9 +265,11 @@ extern int tt_mask;
 extern int tt_date;
 extern double lmrSize[2][MAX_PLY][MAX_MOVES];
 
+const int hiddenLayerSize = 16;
+
 class cAccumulator {
 public:
-	int hidden[16];
+	int hidden[hiddenLayerSize];
 	void SetFromScratch(Position* p);
 	void Clear();
 	void Add(int cl, int pc, int sq);
@@ -282,9 +284,9 @@ private:
 public:
 	void Reset();
 	void Init(int x);
-	int quantized[16][768];
-	float hiddenWeights[16];
-	float outputWeights[16];
+	int quantized[hiddenLayerSize][768];
+	float hiddenWeights[hiddenLayerSize];
+	float outputWeights[hiddenLayerSize];
 	float finalWeight;
 	void SaveWeights(const char* filename);
 	void LoadWeights(const char* filename);

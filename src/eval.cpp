@@ -3,7 +3,6 @@
 #include "lizard.h"
 
 float nnValue;
-const int hiddenLayerSize = 16;
 sEvalHashEntry EvalTT[EVAL_HASH_SIZE];
 
 int kingRoot[64] = {
