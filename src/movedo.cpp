@@ -60,8 +60,7 @@ void Position::DoMove(int move, UNDO* u) {
     hash_key ^= zob_piece[Pc(sd, ftp)][fsq] ^ zob_piece[Pc(sd, ftp)][tsq];
     cl_bb[sd] ^= SqBb(fsq) | SqBb(tsq);
     tp_bb[ftp] ^= SqBb(fsq) | SqBb(tsq);
-    Accumulator.Add(sd, ftp, tsq);
-    Accumulator.Del(sd, ftp, fsq);
+    Accumulator.Move(sd, ftp, fsq, tsq);
 
     // Update king location
 

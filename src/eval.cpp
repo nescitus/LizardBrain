@@ -5,6 +5,14 @@
 float nnValue;
 sEvalHashEntry EvalTT[EVAL_HASH_SIZE];
 
+//#define USE_PRESSURE
+
+#ifdef USE_PRESSURE
+U64 control[2];
+U64 bbPawnTakes[2];
+const int hanging[7] = { 1, 11, 11, 14, 20, 0, 0 };
+#endif
+
 int kingRoot[64] = {
  B2,  B2,  C2,  D2,  E2,  F2,  G2,  G2,
  B2,  B2,  C2,  D2,  E2,  F2,  G2,  G2,
@@ -43,8 +51,17 @@ int Evaluate(Position* p) {
 
     int score = EvalNN(p);
 
-    score += EvalPieces(p, White);
-    score -= EvalPieces(p, Black);
+#ifdef USE_PRESSURE
+    bbPawnTakes[White] = GetWPControl(PcBb(p, White, Pawn));
+    bbPawnTakes[Black] = GetBPControl(PcBb(p, Black, Pawn));
+    control[White] = bbPawnTakes[White];
+    control[Black] = bbPawnTakes[Black];
+#endif
+
+   // score += EvalPieces(p, White);
+   // score -= EvalPieces(p, Black);
+   // score += EvalPressure(p, White);
+   // score -= EvalPressure(p, Black);
     
     // Scale down drawish endgames
 
@@ -111,6 +128,29 @@ int Idx(int x, int y, int z) {
     return 64 * (6 * x + y) + z;
 }
 
+
+int EvalPressure(Position* p, int sd) {
+    int result = 0;
+#ifdef USE_PRESSURE
+    int s, t;
+    U64 opp = p->cl_bb[Opp(sd)];
+    U64 att = control[sd];
+    U64 def = control[Opp(sd)];
+
+    U64 ctrl = att & ~def;
+    U64 hang = (opp & ctrl) | (opp & bbPawnTakes[sd]);
+
+    // enemy pieces, hanging and attacked
+
+    while (hang) {
+        s = PopFirstBit(&hang);
+        t = Tp(p->pc[s]);
+        result += hanging[t];
+    }
+#endif
+    return result;
+}
+
 int EvalPieces(Position* p, int side) {
 
     U64 bbPieces, bbAtt, bbMob;
@@ -118,7 +158,9 @@ int EvalPieces(Position* p, int side) {
     int result = 0;
     int op = Opp(side);
     int ksq = KingSq(p, op);
-
+#ifdef USE_PRESSURE
+    control[op] |= k_attacks[ksq];
+#endif
     // Init enemy king zone for attack evaluation
 
     int att = 0;
@@ -137,6 +179,9 @@ int EvalPieces(Position* p, int side) {
         // Knight attacks on enemy king zone
 
         bbAtt = n_attacks[sq];
+#ifdef USE_PRESSURE
+        control[side] |= bbAtt;
+#endif
         if (bbAtt & bbZone) {
             att += 2 * PopCnt(bbAtt & bbZone);
         }
@@ -149,6 +194,9 @@ int EvalPieces(Position* p, int side) {
         // Bishop mobility
 
         bbMob = BAttacks(OccBb(p), sq);
+#ifdef USE_PRESSURE
+        control[side] |= bbMob;
+#endif
         cnt = PopCnt(bbMob) - 7;
         result += 5 * cnt;
 
@@ -168,6 +216,9 @@ int EvalPieces(Position* p, int side) {
         // Rook mobility
 
         bbMob = RAttacks(OccBb(p), sq);
+#ifdef USE_PRESSURE
+        control[side] |= bbMob;
+#endif
         cnt = PopCnt(bbMob) - 7;
         result += 2 * cnt;
 
@@ -187,6 +238,9 @@ int EvalPieces(Position* p, int side) {
         // Queen mobility
 
         bbMob = BAttacks(OccBb(p), sq);
+#ifdef USE_PRESSURE
+        control[side] |= bbMob;
+#endif
         cnt = PopCnt(bbMob) - 14;
         result += 1 * cnt;
 

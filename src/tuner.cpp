@@ -28,8 +28,8 @@ void cTuner::LoadAll() {
 
     fclose(epdFile);
     
-    epdFile = fopen("new.epd", "r");
-    printf("reading epdFile 'new.epd' (%s)\n", epdFile == NULL ? "failure" : "success");
+    epdFile = fopen("lichess.epd", "r");
+    printf("reading epdFile 'lichess.epd' (%s)\n", epdFile == NULL ? "failure" : "success");
 
     while (fgets(line, sizeof(line), epdFile)) {    // read positions line by line
 

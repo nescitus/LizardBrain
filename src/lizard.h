@@ -113,6 +113,18 @@ static const U64 bbRelRank[2][8] = { { RANK_1_BB, RANK_2_BB, RANK_3_BB, RANK_4_B
 #define REL_SQ(sq,cl)   ( sq ^ (cl * 56) )
 #define RelSqBb(sq,cl)  ( SqBb(REL_SQ(sq,cl) ) )
 
+#define bbNotA          (U64)0xfefefefefefefefe // ~FILE_A_BB
+#define bbNotH          (U64)0x7f7f7f7f7f7f7f7f // ~FILE_H_BB
+
+#define ShiftNorth(x)   (x<<8)
+#define ShiftSouth(x)   (x>>8)
+#define ShiftWest(x)    ((x & bbNotA)>>1)
+#define ShiftEast(x)    ((x & bbNotH)<<1)
+#define ShiftNW(x)      ((x & bbNotA)<<7)
+#define ShiftNE(x)      ((x & bbNotH)<<9)
+#define ShiftSW(x)      ((x & bbNotA)>>9)
+#define ShiftSE(x)      ((x & bbNotH)>>7)
+
 typedef struct {
   int ttp;
   int castle_flags;
@@ -187,7 +199,13 @@ void DisplayPv(int score, int *pv);
 int EvalNN(Position* p);
 int Evaluate(Position * p);
 int EvalPieces(Position* p, int side);
-int EvalPawns(Position* p, int sd);
+int EvalPressure(Position* p, int side);
+U64 FillNorth(U64 b);
+U64 FillSouth(U64 b);
+U64 GetWPControl(U64 b);
+U64 GetBPControl(U64 b);
+U64 GetFrontSpan(U64 b, int sd);
+U64 GetFwd(U64 b, int sd);
 int *GenerateCaptures(Position *p, int *list);
 int *GenerateQuiet(Position *p, int *list);
 int GetDrawFactor(Position *p, int sd);
@@ -212,8 +230,8 @@ void ParseSetoption(char *);
 int Perft(Position *p, int ply, int depth);
 void PrintBoard(Position *p);
 char *ParseToken(char *, char *);
-int PopCnt(U64);
-int PopFirstBit(U64 * bb);
+int PopCnt(U64 b);
+int PopFirstBit(U64 *b);
 void PvToStr(int *, char *);
 int Quiesce(Position *p, int ply, int alpha, int beta, int *pv);
 U64 Random64(void);
@@ -269,11 +287,12 @@ const int hiddenLayerSize = 16;
 
 class cAccumulator {
 public:
-	int hidden[hiddenLayerSize];
+	alignas(32) int hidden[hiddenLayerSize];
 	void SetFromScratch(Position* p);
 	void Clear();
 	void Add(int cl, int pc, int sq);
 	void Del(int cl, int pc, int sq);
+	void Move(int cl, int pc, int fsq, int tsq);
 };
 
 extern cAccumulator Accumulator;
@@ -284,13 +303,15 @@ private:
 public:
 	void Reset();
 	void Init(int x);
-	int quantized[hiddenLayerSize][768];
+	alignas(32) int quantized[hiddenLayerSize][768];
+	alignas(32) int flat_quantized[hiddenLayerSize * 768];
 	float hiddenWeights[hiddenLayerSize];
 	float outputWeights[hiddenLayerSize];
 	float finalWeight;
 	void SaveWeights(const char* filename);
 	void LoadWeights(const char* filename);
 	void PerturbWeight(int val);
+	void Flatten();
 };
 
 extern cNetwork Network;
@@ -310,10 +331,13 @@ int Idx(int x, int y, int z);
 #include <math.h>
 
 const int scaleFactor = 1000000;
-const int weightChange = (int)round(0.007 * scaleFactor);
+const int weightChange = (int)round(0.010 * scaleFactor);
 const int numberOfBatches = 100;
 const int changesPerBatch = 100; // leave as it is
 const int batchFilter = 600;
+
+// 75.971127 60,7% vs Rodent 0.11
+// 74.668681 60,9% vs Rodent 0.11
 
 //#define USE_TUNING
 

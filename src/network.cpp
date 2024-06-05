@@ -188,6 +188,8 @@ void cNetwork::PerturbWeight(int x) {
 
     // Perturb the weight by x or -x
     quantized[i][j] += sign * x;
+
+    Flatten();
 }
 
 float cNetwork::GetXavierValue() {
@@ -247,6 +249,20 @@ void cNetwork::LoadWeights(const char* filename) {
         }
     }
 
+    // Copy the elements of the quantized array into the flat_quantized array
+    Flatten();
+
     fclose(file);
     //printf("min %d max %d", min, max);
+}
+
+void cNetwork::Flatten() {
+
+    // Copy the elements of the quantized array into the flat_quantized array
+    for (int i = 0; i < hiddenLayerSize; i++) {
+        for (int j = 0; j < 768; j++) {
+            int flat_idx = j * hiddenLayerSize + i;
+            flat_quantized[flat_idx] = quantized[i][j];
+        }
+    }
 }

@@ -35,12 +35,12 @@ void Position::UndoMove(int move, UNDO* u) {
     pc[tsq] = NO_PC;
     cl_bb[sd] ^= SqBb(fsq) | SqBb(tsq);
     tp_bb[ftp] ^= SqBb(fsq) | SqBb(tsq);
-    Accumulator.Add(sd, ftp, fsq);
-    Accumulator.Del(sd, ftp, tsq);
+    Accumulator.Move(sd, ftp, tsq, fsq);
 
     // Update king location
 
-    if (ftp == King) king_sq[sd] = fsq;
+    if (ftp == King) 
+        king_sq[sd] = fsq;
 
     // Undo capture
 
