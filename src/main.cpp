@@ -4,6 +4,7 @@
 sTimer Timer; // class for setting and observing time limits
 cNetwork Network;
 cAccumulator Accumulator;
+cDanger Danger;
 
 int main() {
 #ifdef USE_TUNING
@@ -11,6 +12,7 @@ int main() {
 #endif
   Init();
   Network.Init(0);
+  Danger.Init(27, 8);
   InitLmr();
   UciLoop();
   return 0;

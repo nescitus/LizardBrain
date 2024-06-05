@@ -183,6 +183,15 @@ typedef struct {
   unsigned char depth;
 } ENTRY;
 
+
+class cDanger {
+public:
+	int tab[512];
+	void Init(int attStep, int attCap);
+};
+
+extern cDanger Danger;
+
 void AllocTrans(int mbsize);
 int Attacked(Position *p, int sq, int side);
 U64 AttacksFrom(Position *p, int sq);
@@ -325,9 +334,6 @@ struct sEvalHashEntry {
 
 int Idx(int x, int y, int z);
 
-// 63.099306
-// 61.573843
-
 #include <math.h>
 
 const int scaleFactor = 1000000;
@@ -338,6 +344,8 @@ const int batchFilter = 600;
 
 // 75.971127 60,7% vs Rodent 0.11
 // 74.668681 60,9% vs Rodent 0.11
+// speedup   64,1% vs Rodent 0.11
+// new ks    69,4%
 
 //#define USE_TUNING
 

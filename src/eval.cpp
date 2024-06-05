@@ -5,7 +5,11 @@
 float nnValue;
 sEvalHashEntry EvalTT[EVAL_HASH_SIZE];
 
-//#define USE_PRESSURE
+int mg[2];
+int eg[2];
+int phase;
+
+#define USE_PRESSURE
 
 #ifdef USE_PRESSURE
 U64 control[2];
@@ -49,6 +53,10 @@ int Evaluate(Position* p) {
     }
 #endif
 
+    mg[White] = mg[Black] = 0;
+    eg[White] = eg[Black] = 0;
+    phase = 0;
+
     int score = EvalNN(p);
 
 #ifdef USE_PRESSURE
@@ -58,10 +66,17 @@ int Evaluate(Position* p) {
     control[Black] = bbPawnTakes[Black];
 #endif
 
-   // score += EvalPieces(p, White);
-   // score -= EvalPieces(p, Black);
-   // score += EvalPressure(p, White);
-   // score -= EvalPressure(p, Black);
+    score += EvalPieces(p, White);
+    score -= EvalPieces(p, Black);
+    score += EvalPressure(p, White);
+    score -= EvalPressure(p, Black);
+
+    int mgPhase = Min(phase, 32);
+    int egPhase = 32 - mgPhase;
+    int mgScore = mg[White] - mg[Black];
+    int egScore = eg[White] - eg[Black];
+
+    score += ((mgPhase * mgScore) + (egPhase * egScore)) / 24;
     
     // Scale down drawish endgames
 
@@ -153,7 +168,7 @@ int EvalPressure(Position* p, int sd) {
 
 int EvalPieces(Position* p, int side) {
 
-    U64 bbPieces, bbAtt, bbMob;
+    U64 bbPieces, bbAtt, bbMob, bbSafe;
     int sq, cnt;
     int result = 0;
     int op = Opp(side);
@@ -161,6 +176,11 @@ int EvalPieces(Position* p, int side) {
 #ifdef USE_PRESSURE
     control[op] |= k_attacks[ksq];
 #endif
+    U64 nChecks = n_attacks[ksq];
+    U64 bChecks = BAttacks(OccBb(p), ksq);
+    U64 rChecks = RAttacks(OccBb(p), ksq);
+    U64 qChecks = rChecks | bChecks;
+
     // Init enemy king zone for attack evaluation
 
     int att = 0;
@@ -169,12 +189,19 @@ int EvalPieces(Position* p, int side) {
     bbPieces = p->Map(side, Knight);
     while (bbPieces) {
         sq = PopFirstBit(&bbPieces);
+        phase += 1;
 
         // Knight mobility
 
         bbMob = n_attacks[sq] & ~p->cl_bb[side];
+        bbSafe = bbMob & ~bbPawnTakes[op];
         cnt = PopCnt(bbMob) - 4;
         result += 4 * cnt;
+
+        // Knight check threats
+
+        if (bbSafe & nChecks)
+            att += 14 * PopCnt(bbSafe & nChecks);
 
         // Knight attacks on enemy king zone
 
@@ -183,66 +210,90 @@ int EvalPieces(Position* p, int side) {
         control[side] |= bbAtt;
 #endif
         if (bbAtt & bbZone) {
-            att += 2 * PopCnt(bbAtt & bbZone);
+            att += 7 * PopCnt(bbAtt & bbZone);
         }
     }
 
     bbPieces = p->Map(side, Bishop);
     while (bbPieces) {
         sq = PopFirstBit(&bbPieces);
+        phase += 1;
 
         // Bishop mobility
 
         bbMob = BAttacks(OccBb(p), sq);
+        bbSafe = bbMob & ~bbPawnTakes[op];
 #ifdef USE_PRESSURE
         control[side] |= bbMob;
 #endif
         cnt = PopCnt(bbMob) - 7;
         result += 5 * cnt;
 
+        // Bishop check threats
+
+        if (bbSafe & bChecks)
+            att += 20 * PopCnt(bbSafe & bChecks);
+
         // Bishop attacks on enemy king zone
 
         bbAtt = BAttacks(OccBb(p) ^ p->Map(side, Queen), sq);
         bbAtt &= bbZone;
         if (bbAtt) {
-            att += 2 * PopCnt(bbAtt);
+            att += 8 * PopCnt(bbAtt & ~bbPawnTakes[op]);
+            att += 4 * PopCnt(bbAtt & bbPawnTakes[op]);
         }
     }
 
     bbPieces = p->Map(side, Rook);
     while (bbPieces) {
         sq = PopFirstBit(&bbPieces);
+        phase += 2;
 
         // Rook mobility
 
         bbMob = RAttacks(OccBb(p), sq);
+        bbSafe = bbMob & ~bbPawnTakes[op];
 #ifdef USE_PRESSURE
         control[side] |= bbMob;
 #endif
         cnt = PopCnt(bbMob) - 7;
-        result += 2 * cnt;
+        mg[side] += 2 * cnt;
+        eg[side] += 4 * cnt;
+
+        // Rook check threats
+
+        if (bbSafe & rChecks)
+            att += 18 * PopCnt(bbSafe & rChecks);
 
         // Rook attacks on enemy king zone
 
         bbAtt = RAttacks(OccBb(p) ^ p->Map(side, Queen) ^ p->Map(side, Rook), sq);
         bbAtt &= bbZone;
         if (bbAtt) {
-            att += 3 * PopCnt(bbAtt);
+            att += 12 * PopCnt(bbAtt & ~bbPawnTakes[op]);
+            att +=  5 * PopCnt(bbAtt & bbPawnTakes[op]);
         }
     }
 
     bbPieces = p->Map(side, Queen);
     while (bbPieces) {
         sq = PopFirstBit(&bbPieces);
+        phase += 4;
 
         // Queen mobility
 
-        bbMob = BAttacks(OccBb(p), sq);
+        bbMob = QAttacks(OccBb(p), sq);
 #ifdef USE_PRESSURE
         control[side] |= bbMob;
 #endif
         cnt = PopCnt(bbMob) - 14;
-        result += 1 * cnt;
+        mg[side] += 1 * cnt;
+        eg[side] += 2 * cnt;
+
+        // Queen check threats
+
+        if (bbMob & qChecks)
+            att += 12 * PopCnt(bbMob & qChecks);
 
         // Queen attacks on enemy king zone
 
@@ -250,11 +301,13 @@ int EvalPieces(Position* p, int side) {
         bbAtt |= RAttacks(OccBb(p) ^ p->Map(side, Rook) ^ p->Map(side, Queen), sq);
         bbAtt &= bbZone;
         if (bbAtt) {
-            att += 5 * PopCnt(bbAtt);
+            att += 15 * PopCnt(bbAtt & ~bbPawnTakes[op]);
+            att +=  5 * PopCnt(bbAtt & bbPawnTakes[op]);
         }
     }
 
-    result += SafetyTable[Min(att, 99)];
+    //result += SafetyTable[Min(att, 99)];
+    mg[side] += Danger.tab[Min(att, 500)];
 
     return result;
 }
