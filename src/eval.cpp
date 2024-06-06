@@ -8,14 +8,9 @@ sEvalHashEntry EvalTT[EVAL_HASH_SIZE];
 int mg[2];
 int eg[2];
 int phase;
-
-#define USE_PRESSURE
-
-#ifdef USE_PRESSURE
-U64 control[2];
 U64 bbPawnTakes[2];
+U64 control[2];
 const int hanging[7] = { 1, 11, 11, 14, 20, 0, 0 };
-#endif
 
 int kingRoot[64] = {
  B2,  B2,  C2,  D2,  E2,  F2,  G2,  G2,
@@ -26,19 +21,6 @@ int kingRoot[64] = {
  B6,  B6,  C6,  D6,  E6,  F6,  G6,  G6,
  B7,  B7,  C7,  D7,  E7,  F7,  G7,  G7,
  B7,  B7,  C7,  D7,  E7,  F7,  G7,  G7,
-};
-
-static const int SafetyTable[100] = {
-    0,  0,   1,   2,   3,   5,   7,   9,  12,  15,
-  18,  22,  26,  30,  35,  39,  44,  50,  56,  62,
-  68,  75,  82,  85,  89,  97, 105, 113, 122, 131,
- 140, 150, 169, 180, 191, 202, 213, 225, 237, 248,
- 260, 272, 283, 295, 307, 319, 330, 342, 354, 366,
- 377, 389, 401, 412, 424, 436, 448, 459, 471, 483,
- 494, 500, 500, 500, 500, 500, 500, 500, 500, 500,
- 500, 500, 500, 500, 500, 500, 500, 500, 500, 500,
- 500, 500, 500, 500, 500, 500, 500, 500, 500, 500,
- 500, 500, 500, 500, 500, 500, 500, 500, 500, 500
 };
 
 int Evaluate(Position* p) {
@@ -57,14 +39,12 @@ int Evaluate(Position* p) {
     eg[White] = eg[Black] = 0;
     phase = 0;
 
-    int score = EvalNN(p);
-
-#ifdef USE_PRESSURE
+    int score = EvalNN(p);    
+    
     bbPawnTakes[White] = GetWPControl(PcBb(p, White, Pawn));
     bbPawnTakes[Black] = GetBPControl(PcBb(p, Black, Pawn));
     control[White] = bbPawnTakes[White];
     control[Black] = bbPawnTakes[Black];
-#endif
 
     score += EvalPieces(p, White);
     score -= EvalPieces(p, Black);
@@ -146,12 +126,10 @@ int Idx(int x, int y, int z) {
 
 int EvalPressure(Position* p, int sd) {
     int result = 0;
-#ifdef USE_PRESSURE
     int s, t;
     U64 opp = p->cl_bb[Opp(sd)];
     U64 att = control[sd];
     U64 def = control[Opp(sd)];
-
     U64 ctrl = att & ~def;
     U64 hang = (opp & ctrl) | (opp & bbPawnTakes[sd]);
 
@@ -162,7 +140,7 @@ int EvalPressure(Position* p, int sd) {
         t = Tp(p->pc[s]);
         result += hanging[t];
     }
-#endif
+
     return result;
 }
 
@@ -173,9 +151,8 @@ int EvalPieces(Position* p, int side) {
     int result = 0;
     int op = Opp(side);
     int ksq = KingSq(p, op);
-#ifdef USE_PRESSURE
     control[op] |= k_attacks[ksq];
-#endif
+
     U64 nChecks = n_attacks[ksq];
     U64 bChecks = BAttacks(OccBb(p), ksq);
     U64 rChecks = RAttacks(OccBb(p), ksq);
@@ -206,9 +183,7 @@ int EvalPieces(Position* p, int side) {
         // Knight attacks on enemy king zone
 
         bbAtt = n_attacks[sq];
-#ifdef USE_PRESSURE
         control[side] |= bbAtt;
-#endif
         if (bbAtt & bbZone) {
             att += 7 * PopCnt(bbAtt & bbZone);
         }
@@ -223,9 +198,7 @@ int EvalPieces(Position* p, int side) {
 
         bbMob = BAttacks(OccBb(p), sq);
         bbSafe = bbMob & ~bbPawnTakes[op];
-#ifdef USE_PRESSURE
         control[side] |= bbMob;
-#endif
         cnt = PopCnt(bbMob) - 7;
         result += 5 * cnt;
 
@@ -253,9 +226,7 @@ int EvalPieces(Position* p, int side) {
 
         bbMob = RAttacks(OccBb(p), sq);
         bbSafe = bbMob & ~bbPawnTakes[op];
-#ifdef USE_PRESSURE
         control[side] |= bbMob;
-#endif
         cnt = PopCnt(bbMob) - 7;
         mg[side] += 2 * cnt;
         eg[side] += 4 * cnt;
@@ -283,9 +254,7 @@ int EvalPieces(Position* p, int side) {
         // Queen mobility
 
         bbMob = QAttacks(OccBb(p), sq);
-#ifdef USE_PRESSURE
         control[side] |= bbMob;
-#endif
         cnt = PopCnt(bbMob) - 14;
         mg[side] += 1 * cnt;
         eg[side] += 2 * cnt;
