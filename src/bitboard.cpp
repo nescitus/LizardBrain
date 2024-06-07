@@ -2,9 +2,7 @@
 
 #define FAST_POPCNT
 
-int RelSq(int c, int s) {
-    return (s ^ (c * 56));
-}
+
 #ifdef FAST_POPCNT
 
 #include <nmmintrin.h>

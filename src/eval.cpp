@@ -46,12 +46,14 @@ int Evaluate(Position* p) {
     control[White] = bbPawnTakes[White];
     control[Black] = bbPawnTakes[Black];
 
-    score += EvalPieces(p, White);
-    score -= EvalPieces(p, Black);
+    EvalPieces(p, White);
+    EvalPieces(p, Black);
+   // EvalPawns(p, White);
+   // EvalPawns(p, Black);
     score += EvalPressure(p, White);
     score -= EvalPressure(p, Black);
 
-    int mgPhase = Min(phase, 32);
+    int mgPhase = Min(phase, 32); // TODO: test 24
     int egPhase = 32 - mgPhase;
     int mgScore = mg[White] - mg[Black];
     int egScore = eg[White] - eg[Black];
@@ -123,28 +125,7 @@ int Idx(int x, int y, int z) {
     return 64 * (6 * x + y) + z;
 }
 
-
-int EvalPressure(Position* p, int sd) {
-    int result = 0;
-    int s, t;
-    U64 opp = p->cl_bb[Opp(sd)];
-    U64 att = control[sd];
-    U64 def = control[Opp(sd)];
-    U64 ctrl = att & ~def;
-    U64 hang = (opp & ctrl) | (opp & bbPawnTakes[sd]);
-
-    // enemy pieces, hanging and attacked
-
-    while (hang) {
-        s = PopFirstBit(&hang);
-        t = Tp(p->pc[s]);
-        result += hanging[t];
-    }
-
-    return result;
-}
-
-int EvalPieces(Position* p, int side) {
+void EvalPieces(Position* p, int side) {
 
     U64 bbPieces, bbAtt, bbMob, bbSafe;
     int sq, cnt;
@@ -173,7 +154,8 @@ int EvalPieces(Position* p, int side) {
         bbMob = n_attacks[sq] & ~p->cl_bb[side];
         bbSafe = bbMob & ~bbPawnTakes[op];
         cnt = PopCnt(bbMob) - 4;
-        result += 4 * cnt;
+        mg[side] += 4 * cnt;
+        eg[side] += 4 * cnt;
 
         // Knight check threats
 
@@ -200,7 +182,8 @@ int EvalPieces(Position* p, int side) {
         bbSafe = bbMob & ~bbPawnTakes[op];
         control[side] |= bbMob;
         cnt = PopCnt(bbMob) - 7;
-        result += 5 * cnt;
+        mg[side] += 5 * cnt;
+        eg[side] += 5 * cnt;
 
         // Bishop check threats
 
@@ -244,6 +227,24 @@ int EvalPieces(Position* p, int side) {
             att += 12 * PopCnt(bbAtt & ~bbPawnTakes[op]);
             att +=  5 * PopCnt(bbAtt & bbPawnTakes[op]);
         }
+
+        // Rook on (half) open file
+
+        U64 bbFile = FillNorth(SqBb(sq)) | FillSouth(SqBb(sq));
+        if ((bbFile & p->Map(side, Pawn))) {
+            mg[side] -= 6;
+            eg[side] -= 3;
+        }
+        else {
+            if (!(bbFile & p->Map(op, Pawn))) {
+                mg[side] += 6;
+                eg[side] += 6;
+            }
+            else {
+                mg[side] += 3;
+                eg[side] += 3;
+            }
+        }
     }
 
     bbPieces = p->Map(side, Queen);
@@ -275,8 +276,35 @@ int EvalPieces(Position* p, int side) {
         }
     }
 
-    //result += SafetyTable[Min(att, 99)];
     mg[side] += Danger.tab[Min(att, 500)];
+}
+
+void EvalPawns(Position* p, int side) {
+
+    int sq;
+
+    U64 bbPieces = p->Map(side, Queen);
+    while (bbPieces) {
+        sq = PopFirstBit(&bbPieces);
+    }
+}
+
+int EvalPressure(Position* p, int sd) {
+    int result = 0;
+    int s, t;
+    U64 opp = p->cl_bb[Opp(sd)];
+    U64 att = control[sd];
+    U64 def = control[Opp(sd)];
+    U64 ctrl = att & ~def;
+    U64 hang = (opp & ctrl) | (opp & bbPawnTakes[sd]);
+
+    // enemy pieces, hanging and attacked
+
+    while (hang) {
+        s = PopFirstBit(&hang);
+        t = Tp(p->pc[s]);
+        result += hanging[t];
+    }
 
     return result;
 }

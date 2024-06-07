@@ -110,8 +110,8 @@ static const U64 bbRelRank[2][8] = { { RANK_1_BB, RANK_2_BB, RANK_3_BB, RANK_4_B
 
 #define FirstOne(x)     bit_table[(((x) & (~(x) + 1)) * (U64)0x0218A392CD3D5DBF) >> 58]
 
-#define REL_SQ(sq,cl)   ( sq ^ (cl * 56) )
-#define RelSqBb(sq,cl)  ( SqBb(REL_SQ(sq,cl) ) )
+#define RelSq(sq,cl)   ( sq ^ (cl * 56) )
+#define RelSqBb(sq,cl)  ( SqBb(RelSq(sq,cl) ) )
 
 #define bbNotA          (U64)0xfefefefefefefefe // ~FILE_A_BB
 #define bbNotH          (U64)0x7f7f7f7f7f7f7f7f // ~FILE_H_BB
@@ -207,7 +207,8 @@ int CreateMove(int from, int to, int flag);
 void DisplayPv(int score, int *pv);
 int EvalNN(Position* p);
 int Evaluate(Position * p);
-int EvalPieces(Position* p, int side);
+void EvalPieces(Position* p, int side);
+void EvalPawns(Position* p, int side);
 int EvalPressure(Position* p, int side);
 U64 FillNorth(U64 b);
 U64 FillSouth(U64 b);
@@ -342,10 +343,9 @@ const int numberOfBatches = 100;
 const int changesPerBatch = 100; // leave as it is
 const int batchFilter = 600;
 
-// 75.971127 60,7% vs Rodent 0.11
-// 74.668681 60,9% vs Rodent 0.11
-// speedup   64,1% vs Rodent 0.11
-// new ks    69,4%
+// equal vs Fruit 2.1
+// 62.076786
+// 62.004244
 
 //#define USE_TUNING
 

@@ -27,7 +27,7 @@ void cTuner::LoadAll() {
     }
 
     fclose(epdFile);
-    
+    /**
     epdFile = fopen("lichess.epd", "r");
     printf("reading epdFile 'lichess.epd' (%s)\n", epdFile == NULL ? "failure" : "success");
 
@@ -42,7 +42,7 @@ void cTuner::LoadAll() {
     }
 
     fclose(epdFile);
-
+    */
     /*
     epdFile = fopen("filtered.epd", "r");
     printf("reading epdFile 'filtered.epd' (%s)\n", epdFile == NULL ? "failure" : "success");
