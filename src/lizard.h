@@ -344,8 +344,6 @@ const int changesPerBatch = 100; // leave as it is
 const int batchFilter = 600;
 
 // equal vs Fruit 2.1
-// 62.076786
-// 62.004244
 
 //#define USE_TUNING
 
@@ -375,8 +373,3 @@ public:
 extern cTuner Tuner;
 
 #endif
-
-const int passed_bonus[2][8] = {
-  {0,  10, 10, 20, 30,  40,  50, 0},
-  {0,  50, 40, 30, 20,  10,  10, 0}
-};

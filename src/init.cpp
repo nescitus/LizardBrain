@@ -106,4 +106,12 @@ void Init(void) {
 
   for (i = 0; i < 8; i++)
     zob_ep[i] = Random64();
+
+  for (int sq = 0; sq < 64; sq++) {
+      support_mask[White][sq] = ShiftWest(SqBb(sq)) | ShiftEast(SqBb(sq));
+      support_mask[White][sq] |= FillSouth(support_mask[White][sq]);
+
+      support_mask[Black][sq] = ShiftWest(SqBb(sq)) | ShiftEast(SqBb(sq));
+      support_mask[Black][sq] |= FillNorth(support_mask[Black][sq]);
+  }
 }

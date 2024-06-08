@@ -1,6 +1,7 @@
 #include <assert.h>
 #include <stdio.h>
 #include "lizard.h"
+#include "eval.h"
 
 float nnValue;
 sEvalHashEntry EvalTT[EVAL_HASH_SIZE];
@@ -10,7 +11,6 @@ int eg[2];
 int phase;
 U64 bbPawnTakes[2];
 U64 control[2];
-const int hanging[7] = { 1, 11, 11, 14, 20, 0, 0 };
 
 int kingRoot[64] = {
  B2,  B2,  C2,  D2,  E2,  F2,  G2,  G2,
@@ -48,13 +48,13 @@ int Evaluate(Position* p) {
 
     EvalPieces(p, White);
     EvalPieces(p, Black);
-   // EvalPawns(p, White);
-   // EvalPawns(p, Black);
+    EvalPawns(p, White);
+    EvalPawns(p, Black);
     score += EvalPressure(p, White);
     score -= EvalPressure(p, Black);
 
-    int mgPhase = Min(phase, 32); // TODO: test 24
-    int egPhase = 32 - mgPhase;
+    int mgPhase = Min(phase, 24); // TODO: test 24
+    int egPhase = 24 - mgPhase;
     int mgScore = mg[White] - mg[Black];
     int egScore = eg[White] - eg[Black];
 
@@ -282,10 +282,16 @@ void EvalPieces(Position* p, int side) {
 void EvalPawns(Position* p, int side) {
 
     int sq;
+    U64 bbPieces = p->Map(side, Pawn);
 
-    U64 bbPieces = p->Map(side, Queen);
     while (bbPieces) {
         sq = PopFirstBit(&bbPieces);
+
+        if ((passed_mask[side][sq] & PcBb(p, Opp(side), Pawn)) == 0)
+        {
+            mg[side] += passed_bonus_mg[side][Rank(sq)];
+            eg[side] += passed_bonus_eg[side][Rank(sq)];
+        }
     }
 }
 
